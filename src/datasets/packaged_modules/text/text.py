@@ -49,8 +49,15 @@ class Text(datasets.ArrowBasedBuilder):
     def _generate_tables(self, files):
         schema = pa.schema(self.config.features.type if self.config.features is not None else {"text": pa.string()})
         for file_idx, file in enumerate(files):
+            if file.endswith('.xz'):
+                print('Oh, this is xz file! That is alright :)')
+                import lzma
+                open_file = lambda x: lzma.open(x, mode='rt')
+            else:
+                open_file = lambda x: open(x, mode="r", encoding=self.config.encoding)
+
             batch_idx = 0
-            with open(file, "r", encoding=self.config.encoding) as f:
+            with open_file(file) as f:
                 while True:
                     batch = f.read(self.config.chunksize)
                     if not batch:
